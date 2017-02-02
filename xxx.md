@@ -36,6 +36,27 @@ grad <- function(theta, X, y){
 
 Now let's train our model with the [NBA shot log dataset](http://junma5.weebly.com/data-blog/fun-with-advanced-nba-stats). Specifically, I am interested in how will shot clock, shot distance and defender distance affect shooting performance. Naively, we would think _more time remaining in shot clock, shorter distance to basket, farther to defender_ will all increase the probability of a field goal. Shortly, we will see whether we can statistically prove that.
 
+```
+Here comes the logistic regression fuction, which takes training dataframe X, and label y as function input. It returns a column vector which stores the coefficients in theta. One thing to pay attention to is that the input X usually doesn't have a bias term, the leading column vector of 1, so I added this column in the function. 
+```{r, message=FALSE, cache=TRUE}
+logisticReg <- function(X, y){
+  #remove NA rows
+  temp <- na.omit(cbind(y, X))
+  #add bias term and convert to matrix
+  X <- mutate(temp[, -1], bias =1)
+  X <- as.matrix(X[,c(ncol(X), 1:(ncol(X)-1))])
+  y <- as.matrix(temp[, 1])
+  #initialize theta
+  theta <- matrix(rep(0, ncol(X)), nrow = ncol(X))
+  #use the optim function to perform gradient descent
+  costOpti <- optim(theta, cost, grad, X=X, y=y)
+  #return coefficients
+  return(costOpti$par)
+}
+
+```
+
+
 ```{r, message=FALSE, warning=FALSE, cache=TRUE}
 #load the dataset
 shot <- read.csv('2014-2015shot.csv', header = T, stringsAsFactors = F)
@@ -48,6 +69,7 @@ shot.y <- shot.df[, 1]
 mod <- logisticReg(shot.X, shot.y)
 mod
 ```
+
 How do we interpret the model? 
 
 * The first number is the intercept. It is the log odds of a FG if all other predictors are 0. Note if log odds is 0, the probality is 0.5. So the negative intercept means <50%.
