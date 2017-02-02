@@ -31,3 +31,32 @@ grad <- function(theta, X, y){
   grad <- (t(X)%*%(h - y))/m
   grad
 }
+
+## Training with NBA shot log dataset
+
+Now let's train our model with the [NBA shot log dataset](http://junma5.weebly.com/data-blog/fun-with-advanced-nba-stats). Specifically, I am interested in how will shot clock, shot distance and defender distance affect shooting performance. Naively, we would think _more time remaining in shot clock, shorter distance to basket, farther to defender_ will all increase the probability of a field goal. Shortly, we will see whether we can statistically prove that.
+
+```{r, message=FALSE, warning=FALSE, cache=TRUE}
+#load the dataset
+shot <- read.csv('2014-2015shot.csv', header = T, stringsAsFactors = F)
+shot.df <- select(shot, FGM, SHOT_CLOCK, SHOT_DIST, CLOSE_DEF_DIST)
+head(shot.df)
+
+shot.X <- shot.df[, -1]
+shot.y <- shot.df[, 1]
+
+mod <- logisticReg(shot.X, shot.y)
+mod
+```
+How do we interpret the model? 
+
+* The first number is the intercept. It is the log odds of a FG if all other predictors are 0. Note if log odds is 0, the probality is 0.5. So the negative intercept means <50%.
+
+* The next three numbers are the coefficients for SHOT_CLOCK, SHOT_DIST, CLOSE_DEF_DIST. For every unit increase in the predictor, the coefficient is the change of log odds while holding other predictors to be constant.
+
+* For example, let's look at the last number. While holding others the same, if the defender moves 1 ft farther away, the log odds of that shot will increase by 0.106.
+
+* If the original FG% is 50%, the new FG% will be 52.6% if the defender is 1 ft farther.
+
+Now, look at the signs of the coefficients, we can conclude that increase in SHOT_CLOCK, CLOSE_DEF_DIST and decrease in SHOT_DIST will all have positive impact in FG%.
+
